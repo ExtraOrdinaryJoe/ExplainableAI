@@ -46,27 +46,6 @@ classifier.fit(X_train, y_train, batch_size = 10, epochs = 5)
 # Predicting the Test set results
 y_pred = classifier.predict(X_test)
 y_pred = (y_pred > 0.5)
-import lime.lime_tabular
-explainer = lime.lime_tabular.LimeTabularExplainer(X_train,mode="regression",
-                                                   feature_names=features, class_names=[0,1])
-idx = 1340
-exp_svm = explainer.explain_instance(X_test[idx], classifier.predict,num_features=13, labels=[0, 17])
-exp_svm.show_in_notebook()
-
-
-from sklearn.feature_extraction.text import  TfidfVectorizer;
-vectorizer = TfidfVectorizer(lowercase=False)
-from sklearn.pipeline import make_pipeline
-c = make_pipeline(vectorizer, classifier)
-
-limeexplainer = LimeTextExplainer(class_names=classifier.__class__)
-print(type(limeexplainer))
-idx = 1340
-# aix360 style for explaining input instances
-exp = limeexplainer.explain_instance(y_test.data[idx], y_pred, num_features=13, labels=[0, 17])
-print('Document id: %d' % idx)
-print('Predicted class =', classifier.__class__[classifier.predict(y_test[idx]).reshape(1,-1)[0,0]])
-print('True class: %s' % classifier.__class__[y_test.target[idx]])
 
 
 # Making the Confusion Matrix
