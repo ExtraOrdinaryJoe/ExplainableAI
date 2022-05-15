@@ -1,6 +1,8 @@
-Corollary:
+Meanings:
 Operational Model: Model that a Data Scientist builds for their use cases.
 Explainability model: Model(like SHAP, LIME) that is used to explain the Operational Model.
+
+Summary:
 
 There are many Explainability models available in the form of libraries. They usually output the importance of features. This is applicable both
 globally(On the complete dataset) and locally(for a particular example in Production).  
