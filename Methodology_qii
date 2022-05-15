@@ -93,7 +93,6 @@ features = np.arange(4)
 features_names=['CustomerId', 'Surname', 'CreditScore', 'Geography',
        'Gender', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'HasCrCard',
        'IsActiveMember', 'EstimatedSalary', 'Exited']
-feature_names = ('sepal length', 'sepal width', 'petal length', 'petal width')
 influence_scores = [-0.0016303829505296557, 0.003923190062659191, 0.6644563051297787, -0.0009144238916397686]
 fig, ax = plt.subplots()
 plt.bar(features, influence_scores)
