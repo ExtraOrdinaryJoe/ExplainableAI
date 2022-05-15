@@ -1,0 +1,27 @@
+Corollary:
+Operational Model: Model that a Data Scientist builds for their use cases.
+Explainability model: Model(like SHAP, LIME) that is used to explain the Operational Model.
+
+There are many Explainability models available in the form of libraries. They usually output the importance of features. This is applicable both
+globally(On the complete dataset) and locally(for a particular example in Production).  
+
+However, it is always a big question that which explainability model to pick and how to use its explaination to make an informed decision at the training 
+stage to build better Operational Models. 
+
+We propose two scores to evaluate the explainability of the models.
+1. Explainability Score of an Operational Model
+2. Stability score of an Explainability model
+
+
+1. Explainability Score(e) of an Operational Model 
+After some research, we have zeroed down on four features that we believe drives the explainability. They are:
+D:
+F:
+R:
+S:
+<More to be added>
+
+To start with we are taking a simple average of all the four scores to derive an explainability score ie: e= (D+F+R+S) / 4
+
+2. Stability Score (s) of an Explainability Model
+
