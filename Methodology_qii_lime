@@ -1,0 +1,125 @@
+import pandas as pd
+# Importing the Keras libraries and packages
+from keras.models import Sequential
+from keras.layers import Dense
+# Importing the dataset
+from lime.lime_text import LimeTextExplainer
+
+dataset = pd.read_csv('Bank_Leavers/Churn_Modelling.csv')
+X = dataset.iloc[:, 3:13].values
+y = dataset.iloc[:, 13].values
+features=['CustomerId', 'Surname', 'CreditScore', 'Geography',
+       'Gender', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'HasCrCard',
+       'IsActiveMember', 'EstimatedSalary', 'Exited']
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+
+
+# Country column
+ct = ColumnTransformer([("Transformer", OneHotEncoder(), [1,2])], remainder = 'passthrough')
+X = ct.fit_transform(X)
+# Splitting the dataset into the Training set and Test set
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
+# Feature Scaling
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+# Initialising the ANN
+classifier = Sequential()
+
+# Adding the input layer and the first hidden layer
+classifier.add(Dense(units = 6, kernel_initializer='glorot_uniform', activation = 'relu', input_dim = 13))
+
+# Adding the second hidden layer
+classifier.add(Dense(units = 6, kernel_initializer='glorot_uniform', activation = 'relu'))
+
+# Adding the output layer
+classifier.add(Dense(units = 1, kernel_initializer='glorot_uniform', activation = 'sigmoid'))
+
+# Compiling the ANN
+classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+
+# Fitting the ANN to the Training set
+classifier.fit(X_train, y_train, batch_size = 10, epochs = 5)
+# Predicting the Test set results
+y_pred = classifier.predict(X_test)
+y_pred = (y_pred > 0.5)
+import lime.lime_tabular
+explainer = lime.lime_tabular.LimeTabularExplainer(X_train,mode="regression",
+                                                   feature_names=features, class_names=[0,1])
+idx = 1340
+exp_svm = explainer.explain_instance(X_test[idx], classifier.predict,num_features=13, labels=[0, 17])
+exp_svm.show_in_notebook()
+
+
+from sklearn.feature_extraction.text import  TfidfVectorizer;
+vectorizer = TfidfVectorizer(lowercase=False)
+from sklearn.pipeline import make_pipeline
+c = make_pipeline(vectorizer, classifier)
+
+limeexplainer = LimeTextExplainer(class_names=classifier.__class__)
+print(type(limeexplainer))
+idx = 1340
+# aix360 style for explaining input instances
+exp = limeexplainer.explain_instance(y_test.data[idx], y_pred, num_features=13, labels=[0, 17])
+print('Document id: %d' % idx)
+print('Predicted class =', classifier.__class__[classifier.predict(y_test[idx]).reshape(1,-1)[0,0]])
+print('True class: %s' % classifier.__class__[y_test.target[idx]])
+
+
+# Making the Confusion Matrix
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(y_test, y_pred)
+from qii.qii import QII
+from qii.predictor import QIIPredictor
+from qii.qoi import QuantityOfInterest
+
+
+class LRPredictor(QIIPredictor):
+    def __init__(self, predictor):
+        super(LRPredictor, self).__init__(predictor)
+
+    def predict(self, x):
+        # predict the label for instance x
+        return self._predictor.predict(x)
+
+lr_predictor = LRPredictor(classifier)
+quantity_of_interest = QuantityOfInterest()
+qii = QII(X, 13, quantity_of_interest)
+x_0_idx = 1
+x_0 = X[x_0_idx:x_0_idx+1]
+print("calculating shapley")
+shapley_vals =  qii.compute(x_0=x_0, predictor=lr_predictor,
+                            show_approx=True, evaluated_features=None,
+                            data_exhaustive=True, feature_exhaustive=True,
+                            method='shapley')
+
+print ('Shapley: \n{0}\n\n'.format(shapley_vals))
+
+
+banzhaf_vals =  qii.compute(x_0=x_0, predictor=lr_predictor,
+                            show_approx=True, evaluated_features=None,
+                            data_exhaustive=True, feature_exhaustive=True,
+                            method='banzhaf')
+
+print ('Banzhaf: \n{0}'.format(banzhaf_vals))
+
+from matplotlib.ticker import FuncFormatter
+import matplotlib.pyplot as plt
+import numpy as np
+
+features = np.arange(4)
+features_names=['CustomerId', 'Surname', 'CreditScore', 'Geography',
+       'Gender', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'HasCrCard',
+       'IsActiveMember', 'EstimatedSalary', 'Exited']
+feature_names = ('sepal length', 'sepal width', 'petal length', 'petal width')
+influence_scores = [-0.0016303829505296557, 0.003923190062659191, 0.6644563051297787, -0.0009144238916397686]
+fig, ax = plt.subplots()
+plt.bar(features, influence_scores)
+plt.xticks(features, features_names)
+plt.title('Shapley value of data point 42')
+plt.show()
+
+
